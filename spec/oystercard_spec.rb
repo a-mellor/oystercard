@@ -17,6 +17,26 @@ describe Oystercard do
       expect(subject.top_up(amount)).to eq 10
     end
 
+    it "raises an error if balance goes above £90" do
+      subject.top_up(Oystercard::MAXIMUM_AMOUNT)
+      expect{ subject.top_up(1) }.to raise_error "Maximum amount is #{Oystercard::MAXIMUM_AMOUNT}"
+    end
+  end
+
+  describe "#deduct" do
+
+    it "responds to deduct with an argument" do
+      expect(subject).to respond_to(:deduct).with(1).argument
+    end
+
+    it "can reduce the balance on the oystercard" do
+      subject.top_up(10)
+      expect(subject.deduct(5)).to eq 5
+    end
+
+    it "raises an error if balance goes below zero" do
+      expect{ subject.deduct(1) }.to raise_error "Not enough funds"
+    end
   end
 
 end
