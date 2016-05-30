@@ -2,8 +2,13 @@ require 'oystercard'
 
 describe Oystercard do
 
+  before(:each) do
+    subject.top_up(Oystercard::MAXIMUM_AMOUNT)
+  end
+
   it 'has a balance of zero' do
-    expect(subject.balance).to eq (0)
+    subject.deduct(Oystercard::MAXIMUM_AMOUNT)
+    expect(subject.balance).to eq (Oystercard::ZERO_BALANCE)
   end
 
   describe "#top_up" do
@@ -12,13 +17,7 @@ describe Oystercard do
       expect(subject).to respond_to(:top_up).with(1).argument
     end
 
-    it "allows money to be put on the oystercard" do
-      amount = 10
-      expect(subject.top_up(amount)).to eq 10
-    end
-
     it "raises an error if balance goes above £90" do
-      subject.top_up(Oystercard::MAXIMUM_AMOUNT)
       expect{ subject.top_up(1) }.to raise_error "Maximum amount is #{Oystercard::MAXIMUM_AMOUNT}"
     end
   end
@@ -30,12 +29,11 @@ describe Oystercard do
     end
 
     it "can reduce the balance on the oystercard" do
-      subject.top_up(10)
       expect{ subject.deduct(5) }.to change{subject.balance}.by -5
     end
 
     it "raises an error if balance goes below zero" do
-      expect{ subject.deduct(1) }.to raise_error "Minimum amount is #{Oystercard::ZERO_BALANCE}"
+      expect{ subject.deduct(Oystercard::MAXIMUM_AMOUNT + 1) }.to raise_error "Minimum amount is #{Oystercard::ZERO_BALANCE}"
     end
   end
 
@@ -49,6 +47,11 @@ describe Oystercard do
       subject.touch_in
       expect(subject.in_journey?).to eq true
     end
+
+    it "it raies an error if there isn't enough money" do
+      subject.deduct(Oystercard::MAXIMUM_AMOUNT)
+      expect{ subject.touch_in }.to raise_error "Sorry you need to have a minimum of £1 on your card"
+    end
   end
 
   describe "#touch_out" do
@@ -61,6 +64,11 @@ describe Oystercard do
       subject.touch_in
       subject.touch_out
       expect(subject.in_journey?).to eq false
+    end
+
+    it "deducts a fare when touching out" do
+      subject.touch_in
+      expect{ subject.touch_out }.to change{ subject.balance}.by -(Oystercard::MINIMUM_FARE)
     end
   end
 
