@@ -22,11 +22,11 @@ describe Oystercard do
   describe "#touch_in" do
 
     it "responds to touch_in" do
-      expect(subject).to respond_to(:touch_in)
+      expect(subject).to respond_to(:touch_in).with(1).argument
     end
 
     it "updates the status of the journey to touch in" do
-      subject.touch_in
+      subject.touch_in(station)
       expect(subject.in_journey?).to eq true
     end
 
@@ -43,13 +43,13 @@ describe Oystercard do
     end
 
     it "updates the status of the journey to touch out" do
-      subject.touch_in
+      subject.touch_in(station)
       subject.touch_out
       expect(subject.in_journey?).to eq false
     end
 
     it "deducts a fare when touching out" do
-      subject.touch_in
+      subject.touch_in(station)
       expect{ subject.touch_out }.to change{ subject.balance}.by -(Oystercard::MINIMUM_FARE)
     end
   end
