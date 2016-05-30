@@ -71,11 +71,11 @@ describe Oystercard do
   describe "#journey_history" do
 
     it "responds to journey_history" do
-      expect(subject).to respond_to(:journey_history).with(2).argument
+      expect(subject).to respond_to(:journey_history)
     end
 
     it "stores previous journeys" do
-      expect(subject.journey_history(entry_station, exit_station)).should include(:start_station, :finish_station)  
+      expect(subject.journey_history).should include(start_station, finish_station)
 
     end
 
