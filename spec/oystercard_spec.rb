@@ -6,7 +6,8 @@ describe Oystercard do
     subject.top_up(Oystercard::MAXIMUM_AMOUNT)
   end
 
-  let(:station) {double :station}
+  let(:start_station) {double :station}
+  let(:finish_station) {double :station}
 
   describe "#top_up" do
 
@@ -26,31 +27,37 @@ describe Oystercard do
     end
 
     it "updates the status of the journey to touch in" do
-      subject.touch_in(station)
+      subject.touch_in(start_station)
       expect(subject.in_journey?).to eq true
     end
 
     it "stores entry station" do
-      subject.touch_in(station)
-      expect(subject.entry_station).to eq station
+      subject.touch_in(start_station)
+      expect(subject.entry_station).to eq start_station
     end
   end
 
   describe "#touch_out" do
 
     it "responds to touch_out" do
-      expect(subject).to respond_to(:touch_out)
+      expect(subject).to respond_to(:touch_out).with(1).argument
     end
 
     it "updates the status of the journey to touch out" do
-      subject.touch_in(station)
-      subject.touch_out
+      subject.touch_in(start_station)
+      subject.touch_out(finish_station)
       expect(subject.in_journey?).to eq false
     end
 
     it "deducts a fare when touching out" do
-      subject.touch_in(station)
-      expect{ subject.touch_out }.to change{ subject.balance}.by -(Oystercard::MINIMUM_FARE)
+      subject.touch_in(start_station)
+      expect{ subject.touch_out(finish_station) }.to change{ subject.balance}.by -(Oystercard::MINIMUM_FARE)
+    end
+
+    it "stores an exit station" do
+      subject.touch_in(start_station)
+      subject.touch_out(finish_station)
+      expect(subject.exit_station).to eq finish_station
     end
   end
 
@@ -59,6 +66,19 @@ describe Oystercard do
     it "responds to in_journey?" do
       expect(subject).to respond_to(:in_journey?)
     end
+  end
+
+  describe "#journey_history" do
+
+    it "responds to journey_history" do
+      expect(subject).to respond_to(:journey_history).with(2).argument
+    end
+
+    it "stores previous journeys" do
+      expect(subject.journey_history(entry_station, exit_station)).should include(:start_station, :finish_station)  
+
+    end
+
   end
 
 end
