@@ -10,11 +10,12 @@ class Journey
 
   def finish(station)
     @exit_station = station
+    fare
   end
 
   def fare
-    return MIN_FARE if complete?
-    PENALTY_FARE
+    complete? ? MIN_FARE : PENALTY_FARE
+
   end
 
   def in_journey?

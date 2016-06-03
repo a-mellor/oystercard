@@ -5,44 +5,63 @@ class Oystercard
   MAX_BALANCE = 90
 
 
-  attr_reader :balance, :entry_station, :exit_station, :journeys
+  attr_reader :balance, :journeys
 
-  def initialize(journey = Journey.new)
+  def initialize
     @balance = 0
-    @current_journey = journey
-    # @entry_station = nil
     @journeys = {}
   end
 
   def touch_in(station)
-    fail "Error: minimum balance less than minimum fare. Top-up!" if @balance < Journey::MIN_FARE
-    @current_journey.start(station)
-
-
-    # @entry_station = station
-    # @journeys[@entry_station] = nil
-    # @entry_station
-
+    no_touch_out if !!current_journey
+    balance_check
+    successful_touch_in(station)
   end
 
   def touch_out(station)
-    # deduct(Journey::MIN_FARE)
-    @current_journey.finish(station)
-    deduct(@current_journey.fare)
-    # @exit_station = station
-    # @journeys[@entry_station] = station
-    # @entry_station = nil
+    current_journey == nil ? no_touch_in(station) : successful_touch_out(station)
   end
 
   def top_up(amount)
-    fail "Maximum balance of #{MAX_BALANCE} reached!" if balance + amount > MAX_BALANCE
-    @balance += amount
+    max_balance_check(amount)
+    @balance = balance + amount
   end
 
   private
+
+  attr_accessor :current_journey
+  attr_writer :balance
 
   def deduct(amount)
     @balance -= amount
   end
 
+  def no_touch_out
+    deduct(current_journey.fare)
+  end
+
+  def no_touch_in(station)
+    journey = Journey.new
+    journey.start(nil)
+    journey.finish(station)
+    deduct(journey.fare)
+  end
+
+  def balance_check
+  fail "Error: minimum balance less than minimum fare. Top-up!" if @balance < Journey::MIN_FARE
+  end
+
+  def successful_touch_in(station, journey = Journey.new)
+    @current_journey = journey
+    current_journey.start(station)
+  end
+
+  def successful_touch_out(station)
+    deduct(current_journey.finish(station))
+    @current_journey = nil
+  end
+
+  def max_balance_check(amount)
+    fail "Maximum balance of #{MAX_BALANCE} reached!" if balance + amount > MAX_BALANCE
+  end
 end

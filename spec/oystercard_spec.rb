@@ -7,10 +7,6 @@ describe Oystercard do
       expect(subject.balance).to eq(0)
     end
 
-    it "has no entry station set" do
-      expect(subject.entry_station).to eq nil
-    end
-
     it "has no journey history saved" do
       expect(subject.journeys).to be_empty
     end
@@ -36,16 +32,25 @@ describe Oystercard do
     let(:entry_station){ double :station }
     let(:exit_station){ double :station }
 
-    it "deducts min fare from balance on touch out" do
-      expect{subject.touch_out(exit_station)}.to change{subject.balance}.by(-1)
+    before do
+      subject.top_up(10)
     end
 
-    it "forgets entry station" do
-      subject.top_up(1)
+    it "deducts min fare from balance on touch out" do
       subject.touch_in(entry_station)
-      subject.touch_out(exit_station)
-      expect(subject.entry_station).to eq nil
+      expect{subject.touch_out(exit_station)}.to change{subject.balance}.by(-Journey::MIN_FARE)
     end
+
+    it "deducts penalty fare from balance on touch out" do
+      expect{subject.touch_out(exit_station)}.to change{subject.balance}.by(-Journey::PENALTY_FARE)
+    end
+
+    it 'should deduct penalty if no touch out' do
+      subject.touch_in(entry_station)
+      expect{subject.touch_in('bank')}.to change{subject.balance}.by(-Journey::PENALTY_FARE)
+    end
+
+  
 
     # let(:journey){double :entry_station, :exit_station}
 
